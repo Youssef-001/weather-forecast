@@ -137,6 +137,7 @@ async function capture() {
     if (key == "Enter") {
       let city = getCity() || "Cairo";
       RetriveWeatherData(city);
+      document.querySelector(".suggestions").innerHTML = "";
     }
   });
 }
