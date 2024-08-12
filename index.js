@@ -1,5 +1,7 @@
 const API_KEY = "B5X3A9338BF4Y23D8NNSRKSPH";
 
+// c9xlf0nTDSSmMpClf4DMxaZScUkG8GEd
+
 function getCity() {
   let cityInput = document.querySelector(".search");
   city = cityInput.value;
@@ -55,12 +57,14 @@ function RenderHourlyData(data) {
 }
 
 function RenderSevenDays(data) {
+  document.querySelector(".days").innerHTML = "";
   data.forEach((day) => {
     let dayCard = document.createElement("div");
     dayCard.classList.add("day");
     let date = document.createElement("p");
     date.innerHTML = day.date;
     let weather = document.createElement("div");
+    weather.classList.add("weather");
     let icon = document.createElement("img");
     icon.src = `./icons/${day.icon}.png`;
     let state = document.createElement("div");
@@ -68,9 +72,10 @@ function RenderSevenDays(data) {
     weather.appendChild(icon);
     weather.appendChild(state);
     let tempMax = document.createElement("p");
-    tempMax.innerText = day.tempmax;
+    tempMax.innerText = day.tempmax + "/";
     let tempMin = document.createElement("p");
     tempMin.innerText = day.tempmin;
+    tempMin.classList.add("min");
 
     dayCard.appendChild(date);
     dayCard.appendChild(weather);
@@ -138,12 +143,56 @@ async function capture() {
 
 capture();
 
-// document.addEventListener("DOMContentLoaded", (e) => {
-//   let city = getCity() || "Cairo";
-//   RetriveWeatherData(city);
-// });
-
 window.onload = (e) => {
   let city = getCity() || "Cairo";
   RetriveWeatherData(city);
 };
+
+let citiesArray = [];
+
+async function loadCities() {
+  let list = await fetch("./list.txt");
+  let cities = await list.text();
+  cities = cities.split("\n");
+
+  cities.forEach((city) => {
+    citiesArray.push(city);
+  });
+
+  return cities;
+}
+
+async function filterCities(text) {
+  let cities = await loadCities();
+  let filteredCities = cities.filter((city) =>
+    city.toLowerCase().startsWith(text.toLowerCase())
+  );
+
+  if (filteredCities.length > 10) {
+    filteredCities = filteredCities.slice(0, 10);
+  }
+  console.log(filteredCities);
+
+  return filteredCities;
+}
+
+// filterCities("toky");
+
+document.querySelector(".search").addEventListener("input", async (event) => {
+  let input = event.target.value;
+  let cities = await filterCities(input);
+  let suggestions = document.querySelector(".suggestions");
+  suggestions.innerHTML = "";
+
+  cities.forEach((city) => {
+    let suggestion = document.createElement("div");
+    suggestion.textContent = city;
+    suggestion.classList.add("suggestion");
+    suggestion.addEventListener("click", () => {
+      document.querySelector(".search").value = city;
+      RetriveWeatherData(city);
+      suggestions.innerHTML = "";
+    });
+    suggestions.appendChild(suggestion);
+  });
+});
